@@ -1,6 +1,6 @@
 # 🚨 Alerta Vecinal
 
-Sistema backend basado en microservicios desarrollado con **Java Spring Boot** para la gestión de reportes ciudadanos de incidentes delictivos en tiempo real.
+Sistema backend basado en microservicios desarrollado con **Java Spring Boot** para la gestión de reportes ciudadanos de incidentes vecinales en tiempo real.
 
 ---
 
@@ -8,14 +8,14 @@ Sistema backend basado en microservicios desarrollado con **Java Spring Boot** p
 
 **Alerta Vecinal** es una plataforma backend orientada al registro y gestión de incidentes mediante una arquitectura de microservicios.
 
-El sistema permite que los ciudadanos puedan reportar incidentes enviando información como:
+El sistema permite que los vecinos puedan reportar incidentes enviando información como:
 
 - Tipo de incidente
 - Descripción
-- Ubicación GPS
+- Dirección o referencia
 - Evidencia fotográfica
 
-Los reportes son procesados por distintos microservicios, permitiendo a las autoridades gestionar la atención y seguimiento de cada caso.
+Los reportes son gestionados por serenazgo, permitiendo realizar seguimiento y actualización del estado de atención de cada caso.
 
 El proyecto está enfocado en el desarrollo de APIs REST, autenticación segura y comunicación entre microservicios utilizando Spring Boot y MySQL.
 
@@ -23,7 +23,7 @@ El proyecto está enfocado en el desarrollo de APIs REST, autenticación segura 
 
 # 🎯 Objetivo General
 
-Desarrollar un sistema backend basado en microservicios con Spring Boot que permita registrar y gestionar incidentes delictivos en tiempo real.
+Desarrollar un sistema backend basado en microservicios con Spring Boot que permita registrar y gestionar incidentes vecinales en tiempo real.
 
 ---
 
@@ -35,6 +35,7 @@ Desarrollar un sistema backend basado en microservicios con Spring Boot que perm
 - Gestionar estados de atención.
 - Aplicar arquitectura basada en microservicios.
 - Persistir información utilizando MySQL.
+- Implementar comunicación asíncrona mediante RabbitMQ.
 
 ---
 
@@ -54,6 +55,18 @@ Microservicio encargado de:
 
 ---
 
+## ⚙️ Admin Service
+
+Microservicio encargado de:
+
+- Gestión de usuarios
+- Gestión de categorías
+- Gestión de estados
+- Administración general del sistema
+- Consulta de estadísticas básicas
+
+---
+
 ## 🚨 Incident Service
 
 Microservicio encargado de:
@@ -62,54 +75,62 @@ Microservicio encargado de:
 - Actualizar estados
 - Consultar reportes
 - Historial de incidencias
+- Gestión de evidencias
 
 ---
 
-## 👮 Authority Service
+## 🛡️ Serenazgo Service
 
 Microservicio encargado de:
 
-- Gestión de policías
-- Gestión de ronderos
-- Consulta de autoridades
+- Recepción de alertas
+- Visualización de incidentes
+- Actualización de estados
+- Seguimiento de incidentes
+- Atención de reportes vecinales
 
 ---
 
-## 📍 Location Service
+## 🔔 Notification Service
 
 Microservicio encargado de:
 
-- Procesamiento de coordenadas GPS
-- Gestión de ubicaciones
-- Consulta de distritos
+- Envío de notificaciones
+- Comunicación mediante RabbitMQ
+- Gestión de eventos asíncronos
+- Alertas del sistema
 
 ---
 
 # 👥 Roles del Sistema
 
-## 👤 Ciudadano
+## 👤 Vecino
 
 Funciones:
 
 - Registrar incidentes
 - Consultar reportes
 - Ver estado de atención
+- Adjuntar evidencias
 
 ---
 
-## 👮 Policía
+## 🛡️ Serenazgo
 
 Funciones:
 
 - Consultar incidentes
 - Actualizar estados
-- Gestionar atención
+- Gestionar atención de incidentes
+- Dar seguimiento a reportes
 
 ### Estados disponibles
 
 - Pendiente
-- En proceso
+- En revisión
+- En camino
 - Atendido
+- Cerrado
 
 ---
 
@@ -119,8 +140,9 @@ Funciones:
 
 - Gestionar usuarios
 - Gestionar categorías
-- Gestionar incidentes
+- Gestionar estados
 - Visualizar estadísticas
+- Administrar el sistema
 
 ---
 
@@ -128,30 +150,36 @@ Funciones:
 
 ## 1️⃣ Registro del incidente
 
-El ciudadano envía:
+El vecino envía:
 
 - Tipo de incidente
 - Descripción
-- Coordenadas GPS
+- Dirección o referencia
 - Evidencia fotográfica
 
 ---
 
 ## 2️⃣ Procesamiento
 
-El microservicio de incidentes procesa y almacena la información en MySQL.
+El Incident Service procesa y almacena la información en MySQL.
 
 ---
 
-## 3️⃣ Gestión del incidente
+## 3️⃣ Atención del incidente
 
-La autoridad consulta los incidentes y actualiza el estado del caso.
+El Serenazgo Service consulta los incidentes y actualiza el estado del caso.
 
 ---
 
-## 4️⃣ Seguimiento
+## 4️⃣ Comunicación asíncrona
 
-El ciudadano consulta el estado del incidente mediante la API REST.
+El Notification Service envía eventos y alertas mediante RabbitMQ.
+
+---
+
+## 5️⃣ Seguimiento
+
+El vecino consulta el estado del incidente mediante la API REST.
 
 ---
 
@@ -164,21 +192,30 @@ El ciudadano consulta el estado del incidente mediante la API REST.
 - Spring Security
 - Spring Data JPA
 
+---
+
 ## Base de Datos
 
 - MySQL
+
+---
 
 ## Arquitectura
 
 - Microservicios
 - API REST
 - JWT Authentication
+- RabbitMQ
+
+---
 
 ## Seguridad
 
 - BCrypt Password Encoder
 - JWT Authentication
 - Roles y permisos
+
+---
 
 ## Herramientas
 
@@ -197,7 +234,8 @@ El ciudadano consulta el estado del incidente mediante la API REST.
 - Categorías
 - Evidencias
 - Estados
-- Autoridades
+- Serenazgo
+- Notificaciones
 
 ---
 
@@ -208,6 +246,16 @@ El ciudadano consulta el estado del incidente mediante la API REST.
 ```http
 POST /api/auth/login
 POST /api/auth/register
+```
+
+---
+
+## ⚙️ Admin Service
+
+```http
+GET /api/admin/users
+POST /api/admin/categories
+PUT /api/admin/states/{id}
 ```
 
 ---
@@ -223,11 +271,11 @@ PUT /api/incidents/{id}
 
 ---
 
-## 👮 Authority Service
+## 🛡️ Serenazgo Service
 
 ```http
-GET /api/police
-GET /api/ronderos
+GET /api/serenazgo/incidents
+PUT /api/serenazgo/incidents/{id}/status
 ```
 
 ---
@@ -259,9 +307,14 @@ public PasswordEncoder passwordEncoder() {
 alerta-vecinal/
 │
 ├── auth-service/
+├── admin-service/
 ├── incident-service/
-├── authority-service/
-├── location-service/
+├── serenazgo-service/
+├── notification-service/
+│
+├── api-gateway/
+├── eureka-server/
+├── config-server/
 │
 ├── docker-compose.yml
 └── README.md
@@ -276,17 +329,18 @@ alerta-vecinal/
 - Fácil mantenimiento
 - APIs reutilizables
 - Mejor organización del backend
+- Comunicación asíncrona entre servicios
 
 ---
 
 # 🚀 Mejoras Futuras
 
-- API Gateway
-- Eureka Server
-- RabbitMQ
+- Dashboard en tiempo real
+- Notificaciones push
+- Integración con aplicación móvil
 - Docker Compose
 - Kubernetes
-- Notificaciones en tiempo real
+- Monitoreo con Spring Boot Admin
 
 ---
 
@@ -298,16 +352,18 @@ alerta-vecinal/
 git clone https://github.com/usuario/alerta-vecinal.git
 ```
 
+---
+
 ## Ingresar al proyecto
 
 ```bash
 cd alerta-vecinal
 ```
 
+---
+
 ## Ejecutar microservicios
 
 ```bash
 mvn spring-boot:run
 ```
-
----
