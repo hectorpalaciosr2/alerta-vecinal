@@ -1,0 +1,27 @@
+server:
+  port: 8080
+
+spring:
+  cloud:
+    gateway:
+      discovery:
+        locator:
+          enabled: true
+          lower-case-service-id: true
+      routes:
+        - id: auth-service
+          uri: lb://auth-service
+          predicates:
+            - Path=/api/auth/**
+        - id: admin-service
+          uri: lb://admin-service
+          predicates:
+            - Path=/api/admin/**
+        - id: incident-service
+          uri: lb://incident-service
+          predicates:
+            - Path=/api/incidents/**
+        - id: serenazgo-service
+          uri: lb://serenazgo-service
+          predicates:
+            - Path=/api/serenazgo/**

@@ -1,0 +1,18 @@
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+
+spring:
+  threads:
+    virtual:
+      enabled: true
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: guest
+    password: guest
+
+jwt:
+  secret: 4b7f4392a831e5e9b897980208170c0c776c5b9f7f98c89283731a5db4e9d724
+  expiration: 86400000

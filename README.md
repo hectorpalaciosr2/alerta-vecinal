@@ -1,369 +1,58 @@
-# 🚨 Alerta Vecinal
+# Alerta Vecinal - Backend
 
-Sistema backend basado en microservicios desarrollado con **Java Spring Boot** para la gestión de reportes ciudadanos de incidentes vecinales en tiempo real.
+Sistema de gestión de incidencias vecinales en tiempo real basado en arquitectura de microservicios.
+Diseñado para manejar alto tráfico en el reporte y actualización de incidencias mediante procesamiento asíncrono y enrutamiento dinámico.
 
----
+## Tech Stack
 
-# 📌 Descripción
+- **Lenguaje**: Java 25
+- **Framework Core**: Spring Boot 4.0.6
+- **Cloud/Routing**: Spring Cloud 2025.1.0 (Oakwood)
+- **Persistencia**: MySQL 8+ / Spring Data JPA
+- **Mensajería**: RabbitMQ
+- **Seguridad**: Spring Security + JWT
+- **Librerías utilitarias**: Lombok, BCrypt
 
-**Alerta Vecinal** es una plataforma backend orientada al registro y gestión de incidentes mediante una arquitectura de microservicios.
+*Nota técnica*: El proyecto hace uso de **Virtual Threads** (Project Loom nativo de Java) habilitados en Spring Boot 4.0 para maximizar el throughput de I/O en las llamadas entre microservicios, reemplazando el viejo modelo de hilos del SO. Para el API Gateway se utiliza `spring-cloud-starter-gateway-server-webflux` adaptado a las convenciones del release Oakwood.
 
-El sistema permite que los vecinos puedan reportar incidentes enviando información como:
+## Arquitectura y Puertos
 
-- Tipo de incidente
-- Descripción
-- Dirección o referencia
-- Evidencia fotográfica
+El ecosistema está compuesto por los siguientes módulos. Es crítico respetar los puertos asignados para que el API Gateway y Eureka puedan hacer el discovery correctamente de forma local.
 
-Los reportes son gestionados por serenazgo, permitiendo realizar seguimiento y actualización del estado de atención de cada caso.
+| Servicio | Puerto Local | Descripción |
+| :--- | :--- | :--- |
+| **Config Server** | `8888` | Servidor centralizado de configuraciones. |
+| **Eureka Server** | `8761` | Service Registry para el descubrimiento de las instancias. |
+| **API Gateway** | `8080` | Punto de entrada único. Enrutamiento webflux y validación inicial JWT. |
+| **Auth Service** | `8081` | Emisión y validación de tokens JWT. Registro de credenciales. |
+| **Admin Service** | `8082` | Gestión CRUD de roles, estados y paramétricas. |
+| **Incident Service** | `8083` | Core de negocio. Registro de incidencias y evidencias. |
+| **Serenazgo Service**| `8084` | Módulo de atención, seguimiento y actualización de estados. |
+| **Notification** | `8085` | Consumidor de colas RabbitMQ para el envío de alertas asíncronas. |
 
-El proyecto está enfocado en el desarrollo de APIs REST, autenticación segura y comunicación entre microservicios utilizando Spring Boot y MySQL.
+## Desarrollo Local
 
----
+Para levantar el ecosistema en un entorno de desarrollo local (Localhost), se debe seguir estrictamente este orden de arranque para evitar timeouts de descubrimiento:
 
-# 🎯 Objetivo General
+1. **Infraestructura Base**:
+   Asegurarse de tener MySQL y RabbitMQ corriendo.
 
-Desarrollar un sistema backend basado en microservicios con Spring Boot que permita registrar y gestionar incidentes vecinales en tiempo real.
+2. **Compilación Limpia**:
+   ```bash
+   mvn clean install -DskipTests -U
+   ```
 
----
+3. **Orden de Arranque de Microservicios**:
+   - Arrancar `config-server` (esperar a que inicialice en el puerto 8888).
+   - Arrancar `eureka-server` (verificar panel en `http://localhost:8761`).
+   - Arrancar los microservicios de negocio (`auth`, `admin`, `incident`, `serenazgo`, `notification`).
+   - Arrancar `api-gateway` al final para que pueda leer la topología completa desde Eureka.
 
-# ✅ Objetivos Específicos
+## Variables de Entorno
 
-- Implementar autenticación mediante JWT.
-- Gestionar usuarios y roles.
-- Registrar incidentes mediante APIs REST.
-- Gestionar estados de atención.
-- Aplicar arquitectura basada en microservicios.
-- Persistir información utilizando MySQL.
-- Implementar comunicación asíncrona mediante RabbitMQ.
+Requerido setear en el IDE o en el entorno las siguientes variables antes del arranque:
 
----
-
-# 🏗️ Arquitectura del Sistema
-
-El sistema estará dividido en microservicios independientes.
-
-## 🔐 Auth Service
-
-Microservicio encargado de:
-
-- Registro de usuarios
-- Inicio de sesión
-- Generación de JWT
-- Gestión de roles
-- Encriptación de contraseñas con BCrypt
-
----
-
-## ⚙️ Admin Service
-
-Microservicio encargado de:
-
-- Gestión de usuarios
-- Gestión de categorías
-- Gestión de estados
-- Administración general del sistema
-- Consulta de estadísticas básicas
-
----
-
-## 🚨 Incident Service
-
-Microservicio encargado de:
-
-- Registrar incidentes
-- Actualizar estados
-- Consultar reportes
-- Historial de incidencias
-- Gestión de evidencias
-
----
-
-## 🛡️ Serenazgo Service
-
-Microservicio encargado de:
-
-- Recepción de alertas
-- Visualización de incidentes
-- Actualización de estados
-- Seguimiento de incidentes
-- Atención de reportes vecinales
-
----
-
-## 🔔 Notification Service
-
-Microservicio encargado de:
-
-- Envío de notificaciones
-- Comunicación mediante RabbitMQ
-- Gestión de eventos asíncronos
-- Alertas del sistema
-
----
-
-# 👥 Roles del Sistema
-
-## 👤 Vecino
-
-Funciones:
-
-- Registrar incidentes
-- Consultar reportes
-- Ver estado de atención
-- Adjuntar evidencias
-
----
-
-## 🛡️ Serenazgo
-
-Funciones:
-
-- Consultar incidentes
-- Actualizar estados
-- Gestionar atención de incidentes
-- Dar seguimiento a reportes
-
-### Estados disponibles
-
-- Pendiente
-- En revisión
-- En camino
-- Atendido
-- Cerrado
-
----
-
-## ⚙️ Administrador
-
-Funciones:
-
-- Gestionar usuarios
-- Gestionar categorías
-- Gestionar estados
-- Visualizar estadísticas
-- Administrar el sistema
-
----
-
-# 🔄 Flujo del Sistema
-
-## 1️⃣ Registro del incidente
-
-El vecino envía:
-
-- Tipo de incidente
-- Descripción
-- Dirección o referencia
-- Evidencia fotográfica
-
----
-
-## 2️⃣ Procesamiento
-
-El Incident Service procesa y almacena la información en MySQL.
-
----
-
-## 3️⃣ Atención del incidente
-
-El Serenazgo Service consulta los incidentes y actualiza el estado del caso.
-
----
-
-## 4️⃣ Comunicación asíncrona
-
-El Notification Service envía eventos y alertas mediante RabbitMQ.
-
----
-
-## 5️⃣ Seguimiento
-
-El vecino consulta el estado del incidente mediante la API REST.
-
----
-
-# 🛠️ Tecnologías Utilizadas
-
-## Backend
-
-- Java 17
-- Spring Boot
-- Spring Security
-- Spring Data JPA
-
----
-
-## Base de Datos
-
-- MySQL
-
----
-
-## Arquitectura
-
-- Microservicios
-- API REST
-- JWT Authentication
-- RabbitMQ
-
----
-
-## Seguridad
-
-- BCrypt Password Encoder
-- JWT Authentication
-- Roles y permisos
-
----
-
-## Herramientas
-
-- Maven
-- Docker
-- Postman
-- GitHub
-
----
-
-# 🗄️ Entidades Principales
-
-- Usuarios
-- Roles
-- Incidentes
-- Categorías
-- Evidencias
-- Estados
-- Serenazgo
-- Notificaciones
-
----
-
-# 📡 Endpoints Principales
-
-## 🔐 Auth Service
-
-```http
-POST /api/auth/login
-POST /api/auth/register
-```
-
----
-
-## ⚙️ Admin Service
-
-```http
-GET /api/admin/users
-POST /api/admin/categories
-PUT /api/admin/states/{id}
-```
-
----
-
-## 🚨 Incident Service
-
-```http
-POST /api/incidents
-GET /api/incidents
-GET /api/incidents/{id}
-PUT /api/incidents/{id}
-```
-
----
-
-## 🛡️ Serenazgo Service
-
-```http
-GET /api/serenazgo/incidents
-PUT /api/serenazgo/incidents/{id}/status
-```
-
----
-
-# 🔐 Seguridad
-
-El sistema implementa mecanismos de seguridad utilizando:
-
-- JWT Authentication
-- BCrypt para encriptación de contraseñas
-- Control de acceso por roles
-- Middleware de autorización
-- Validación de endpoints
-
-### Ejemplo BCrypt
-
-```java
-@Bean
-public PasswordEncoder passwordEncoder() {
-    return new BCryptPasswordEncoder();
-}
-```
-
----
-
-# 📂 Estructura General
-
-```bash
-alerta-vecinal/
-│
-├── auth-service/
-├── admin-service/
-├── incident-service/
-├── serenazgo-service/
-├── notification-service/
-│
-├── api-gateway/
-├── eureka-server/
-├── config-server/
-│
-├── docker-compose.yml
-└── README.md
-```
-
----
-
-# 📊 Beneficios
-
-- Arquitectura escalable
-- Servicios independientes
-- Fácil mantenimiento
-- APIs reutilizables
-- Mejor organización del backend
-- Comunicación asíncrona entre servicios
-
----
-
-# 🚀 Mejoras Futuras
-
-- Dashboard en tiempo real
-- Notificaciones push
-- Integración con aplicación móvil
-- Docker Compose
-- Kubernetes
-- Monitoreo con Spring Boot Admin
-
----
-
-# 📦 Instalación
-
-## Clonar repositorio
-
-```bash
-git clone https://github.com/usuario/alerta-vecinal.git
-```
-
----
-
-## Ingresar al proyecto
-
-```bash
-cd alerta-vecinal
-```
-
----
-
-## Ejecutar microservicios
-
-```bash
-mvn spring-boot:run
-```
+- `DB_URL`: JDBC url de MySQL.
+- `DB_USER` / `DB_PASSWORD`: Credenciales de base de datos.
+- `JWT_SECRET`: Llave simétrica robusta para la firma de tokens.
+- `RABBIT_HOST`: Host de RabbitMQ (default: localhost).
