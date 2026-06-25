@@ -1,0 +1,21 @@
+# Compilados
+**/target/
+
+# IDE
+**/.idea/
+**/*.iml
+**/.classpath
+**/.project
+**/.settings/
+**/.factorypath
+**/.vscode/
+
+# Logs
+**/*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Maven wrapper
+**/.mvn/wrapper/maven-wrapper.jar

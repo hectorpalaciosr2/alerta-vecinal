@@ -3,8 +3,8 @@ package com.alertavecinal.incident_service.service;
 import com.alertavecinal.incident_service.entity.EstadoIncidente;
 import com.alertavecinal.incident_service.entity.Incidente;
 import com.alertavecinal.incident_service.repository.IncidenteRepository;
-import com.alertavecinal.incident_service.socket.NotificadorAlerta;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -12,39 +12,44 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
+@RequiredArgsConstructor
 public class IncidenteService {
 
-    @Autowired
-    private IncidenteRepository incidenteRepository;
+    private final IncidenteRepository incidenteRepository;
+    private final SimpMessagingTemplate messagingTemplate;
 
-    @Autowired
-    private NotificadorAlerta notificadorAlerta;
-
-    // 1. POST: Crear Incidente (Usado por Ciudadano)
     @Transactional
     public Incidente registrarIncidente(Incidente incidente) {
-        Incidente incidenteGuardado = incidenteRepository.save(incidente);
+        Incidente guardado = incidenteRepository.save(incidente);
         try {
-            notificadorAlerta.notificarAgentesEnTiempoReal(incidenteGuardado);
+            // Emite al hub MQTT de WebSockets
+            messagingTemplate.convertAndSend("/topic/alertas", guardado);
         } catch (Exception e) {
-            System.err.println("Error al notificar a los agentes en tiempo real: " + e.getMessage());
+            System.err.println("Error al notificar agentes por websocket: " + e.getMessage());
         }
-        return incidenteGuardado;
+        return guardado;
     }
 
-    // 2. GET: Listar todo (Usado por Serenazgo y Administrador)
     @Transactional(readOnly = true)
     public List<Incidente> obtenerTodos() {
         return incidenteRepository.findAll();
     }
 
-    // 3. GET: Buscar por ID (Para ver detalles o seguimiento del Ciudadano)
     @Transactional(readOnly = true)
     public Optional<Incidente> obtenerPorId(Long id) {
         return incidenteRepository.findById(id);
     }
 
-    // 4. PUT: Cambiar estado y agregar comentario (Usado por el Serenazgo)
+    @Transactional(readOnly = true)
+    public List<Incidente> obtenerPorEstado(EstadoIncidente estado) {
+        return incidenteRepository.findByEstado(estado);
+    }
+
+    @Transactional(readOnly = true)
+    public List<Incidente> obtenerPorPrioridad(String prioridad) {
+        return incidenteRepository.findByPrioridad(prioridad);
+    }
+
     @Transactional
     public Optional<Incidente> actualizarEstadoYComentario(Long id, EstadoIncidente nuevoEstado, String comentario) {
         return incidenteRepository.findById(id).map(incidente -> {
@@ -56,7 +61,6 @@ public class IncidenteService {
         });
     }
 
-    // 5. DELETE: Eliminar incidente (Usado exclusivamente por el Administrador para purgar falsos)
     @Transactional
     public boolean eliminarIncidente(Long id) {
         if (incidenteRepository.existsById(id)) {
@@ -65,6 +69,4 @@ public class IncidenteService {
         }
         return false;
     }
-
-
 }

@@ -5,6 +5,6 @@ public enum EstadoIncidente {
     PENDIENTE,
     EN_PROCESO,
     ATENDIDO,
-    CERRADO
+    ANULADO
 
-}
+}

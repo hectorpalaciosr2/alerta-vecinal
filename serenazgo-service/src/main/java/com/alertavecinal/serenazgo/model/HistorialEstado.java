@@ -1,21 +1,12 @@
 package com.alertavecinal.serenazgo.model;
 
+import com.alertavecinal.serenazgo.enums.EstadoIncidente;
+import jakarta.persistence.*;
+import lombok.Data;
+
 import java.time.LocalDateTime;
 
-import com.alertavecinal.serenazgo.enums.EstadoIncidente;
-
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
-import lombok.Getter;
-import lombok.Setter;
-
-@Getter
-@Setter
+@Data
 @Entity
 @Table(name = "historial_estados")
 public class HistorialEstado {
@@ -25,7 +16,6 @@ public class HistorialEstado {
     private Long id;
 
     private Long incidenteId;
-
     private Long serenazgoId;
 
     @Enumerated(EnumType.STRING)
@@ -35,4 +25,9 @@ public class HistorialEstado {
     private EstadoIncidente estadoNuevo;
 
     private LocalDateTime fechaCambio;
+
+    @PrePersist
+    protected void onCreate() {
+        this.fechaCambio = LocalDateTime.now();
+    }
 }

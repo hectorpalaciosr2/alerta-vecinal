@@ -1,18 +1,15 @@
 package com.alertavecinal.serenazgo.service;
 
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-
 import com.alertavecinal.serenazgo.client.IncidentClient;
 import com.alertavecinal.serenazgo.dto.CambioEstadoRequest;
-import com.alertavecinal.serenazgo.dto.GenericResponseDto;
 import com.alertavecinal.serenazgo.dto.HistorialEstadoResponse;
 import com.alertavecinal.serenazgo.dto.IncidenteDTO;
 import com.alertavecinal.serenazgo.enums.EstadoIncidente;
 import com.alertavecinal.serenazgo.model.HistorialEstado;
 import com.alertavecinal.serenazgo.repository.HistorialEstadoRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -23,120 +20,51 @@ public class SerenazgoService {
     private final HistorialEstadoRepository historialEstadoRepository;
 
     public List<IncidenteDTO> listarIncidentes() {
-
-        GenericResponseDto<List<IncidenteDTO>> response =
-                incidentClient.listarIncidentes();
-
-        return response.getResponse();
+        return incidentClient.listarIncidentes();
     }
 
     public IncidenteDTO obtenerIncidente(Long id) {
-
-        GenericResponseDto<IncidenteDTO> response =
-                incidentClient.obtenerIncidente(id);
-
-        return response.getResponse();
+        return incidentClient.obtenerIncidente(id);
     }
 
-    public IncidenteDTO cambiarEstado(
-            Long incidenteId,
-            Long serenazgoId,
-            CambioEstadoRequest request) {
+    public IncidenteDTO cambiarEstado(Long incidenteId, Long serenazgoId, CambioEstadoRequest request) {
+        // Obtener el estado actual antes de cambiarlo
+        IncidenteDTO incidente = incidentClient.obtenerIncidente(incidenteId);
+        EstadoIncidente estadoAnterior = EstadoIncidente.valueOf(incidente.getEstado());
 
-        IncidenteDTO incidente =
-                incidentClient
-                        .obtenerIncidente(incidenteId)
-                        .getResponse();
-
-        EstadoIncidente estadoAnterior =
-                EstadoIncidente.valueOf(
-                        incidente.getEstado()
-                );
-
-        incidente.setEstado(
-                request.getNuevoEstado().name()
+        // Enviar el cambio al incident-service
+        IncidenteDTO actualizado = incidentClient.cambiarEstado(
+                incidenteId,
+                request.getNuevoEstado().name(),
+                request.getComentario()
         );
 
-        IncidenteDTO incidenteActualizado =
-                incidentClient
-                        .actualizarIncidente(
-                                incidenteId,
-                                incidente
-                        )
-                        .getResponse();
+        // Registrar en historial local
+        HistorialEstado historial = new HistorialEstado();
+        historial.setIncidenteId(incidenteId);
+        historial.setSerenazgoId(serenazgoId);
+        historial.setEstadoAnterior(estadoAnterior);
+        historial.setEstadoNuevo(request.getNuevoEstado());
+        historialEstadoRepository.save(historial);
 
-        HistorialEstado historial =
-                new HistorialEstado();
-
-        historial.setIncidenteId(
-                incidenteId
-        );
-
-        historial.setSerenazgoId(
-                serenazgoId
-        );
-
-        historial.setEstadoAnterior(
-                estadoAnterior
-        );
-
-        historial.setEstadoNuevo(
-                request.getNuevoEstado()
-        );
-
-        historial.setFechaCambio(
-                LocalDateTime.now()
-        );
-
-        historialEstadoRepository.save(
-                historial
-        );
-
-        return incidenteActualizado;
+        return actualizado;
     }
 
-    public List<HistorialEstadoResponse>
-    obtenerHistorial(Long incidenteId) {
-
-        return historialEstadoRepository
-                .findByIncidenteId(
-                        incidenteId
-                )
+    public List<HistorialEstadoResponse> obtenerHistorial(Long incidenteId) {
+        return historialEstadoRepository.findByIncidenteId(incidenteId)
                 .stream()
-                .map(this::convertirResponse)
+                .map(this::toResponse)
                 .toList();
     }
 
-    private HistorialEstadoResponse convertirResponse(
-            HistorialEstado historial) {
-
-        HistorialEstadoResponse response =
-                new HistorialEstadoResponse();
-
-        response.setId(
-                historial.getId()
-        );
-
-        response.setIncidenteId(
-                historial.getIncidenteId()
-        );
-
-        response.setSerenazgoId(
-                historial.getSerenazgoId()
-        );
-
-        response.setEstadoAnterior(
-                historial.getEstadoAnterior()
-        );
-
-        response.setEstadoNuevo(
-                historial.getEstadoNuevo()
-        );
-
-        response.setFechaCambio(
-                historial.getFechaCambio()
-        );
-
-        return response;
+    private HistorialEstadoResponse toResponse(HistorialEstado h) {
+        HistorialEstadoResponse r = new HistorialEstadoResponse();
+        r.setId(h.getId());
+        r.setIncidenteId(h.getIncidenteId());
+        r.setSerenazgoId(h.getSerenazgoId());
+        r.setEstadoAnterior(h.getEstadoAnterior());
+        r.setEstadoNuevo(h.getEstadoNuevo());
+        r.setFechaCambio(h.getFechaCambio());
+        return r;
     }
 }

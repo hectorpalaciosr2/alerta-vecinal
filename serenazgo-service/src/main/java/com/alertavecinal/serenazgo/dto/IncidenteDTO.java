@@ -1,21 +1,20 @@
 package com.alertavecinal.serenazgo.dto;
 
+import lombok.Data;
 
+import java.time.LocalDateTime;
 
-import lombok.Getter;
-import lombok.Setter;
-
-@Getter
-@Setter
+@Data
 public class IncidenteDTO {
-
     private Long id;
-
     private String tipo;
-
     private String descripcion;
-
-    private String direccion;
-
+    private String ubicacionExacta;
+    private String prioridad;
     private String estado;
+    private LocalDateTime fechaCreacion;
+    private LocalDateTime fechaActualizacion;
+    private String comentarioSerenazgo;
+    private String nombresCiudadano;
+    private String apellidosCiudadano;
 }

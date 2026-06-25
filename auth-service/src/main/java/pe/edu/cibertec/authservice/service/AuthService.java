@@ -30,7 +30,10 @@ public class AuthService {
         SecurityContextHolder.getContext().setAuthentication(authentication);
         String jwt = jwtUtils.generateJwtToken(authentication);
 
-        return new AuthResponse(jwt, loginRequest.getUsername(), "Autenticación exitosa");
+        Usuario usuario = usuarioRepository.findByUsername(loginRequest.getUsername())
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+
+        return new AuthResponse(jwt, loginRequest.getUsername(), usuario.getRol(), "Autenticación exitosa");
     }
 
     public AuthResponse registerUser(RegisterRequest signUpRequest) {
@@ -38,13 +41,23 @@ public class AuthService {
             throw new RuntimeException("Error: El nombre de usuario ya está en uso!");
         }
 
+        if (signUpRequest.getEmail() != null && usuarioRepository.existsByEmail(signUpRequest.getEmail())) {
+            throw new RuntimeException("Error: El email ya está registrado!");
+        }
+
         Usuario user = new Usuario();
         user.setUsername(signUpRequest.getUsername());
         user.setPassword(encoder.encode(signUpRequest.getPassword()));
         user.setRol(signUpRequest.getRol() != null ? signUpRequest.getRol() : "ROLE_VECINO");
+        user.setNombres(signUpRequest.getNombres());
+        user.setApellidos(signUpRequest.getApellidos());
+        user.setEmail(signUpRequest.getEmail());
+        user.setTelefono(signUpRequest.getTelefono());
+        user.setDni(signUpRequest.getDni());
 
         usuarioRepository.save(user);
 
-        return new AuthResponse(null, user.getUsername(), "Usuario registrado exitosamente!");
+        return new AuthResponse(null, user.getUsername(), user.getRol(), "Usuario registrado exitosamente!");
     }
 }
+

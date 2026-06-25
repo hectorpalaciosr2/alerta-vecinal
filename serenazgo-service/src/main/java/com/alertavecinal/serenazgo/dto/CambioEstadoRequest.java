@@ -1,13 +1,10 @@
 package com.alertavecinal.serenazgo.dto;
 
 import com.alertavecinal.serenazgo.enums.EstadoIncidente;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
 
-@Getter
-@Setter
+@Data
 public class CambioEstadoRequest {
-
     private EstadoIncidente nuevoEstado;
-
+    private String comentario;
 }

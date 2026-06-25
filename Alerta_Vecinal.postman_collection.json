@@ -1,0 +1,384 @@
+{
+  "info": {
+    "name": "Alerta Vecinal - Arquitectura Microservicios Final",
+    "description": "Coleccion oficial y completa del sistema. Integra seguridad JWT y comunicacion entre microservicios (RestTemplate + Sockets).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "auth_url", "value": "http://localhost:8081" },
+    { "key": "incident_url", "value": "http://localhost:8082" },
+    { "key": "serenazgo_url", "value": "http://localhost:8080" },
+    { "key": "admin_url", "value": "http://localhost:8083" },
+    { "key": "jwt_token", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "01. Auth Service (Seguridad e Identidad)",
+      "item": [
+        {
+          "name": "1. Registrar Ciudadano",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"vecino1\",\n  \"password\": \"123456\",\n  \"email\": \"vecino@alertavecinal.pe\",\n  \"nombre\": \"Juan\",\n  \"apellido\": \"Perez\",\n  \"rol\":\"ROLE_VECINO\"\n}"
+            },
+            "url": { "raw": "{{auth_url}}/api/auth/register", "host": ["{{auth_url}}"], "path": ["api", "auth", "register"] }
+          }
+        },
+        {
+          "name": "2. Registrar Serenazgo",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"agente1\",\n  \"password\": \"123456\",\n  \"email\": \"agente@alertavecinal.pe\",\n  \"nombre\": \"Carlos\",\n  \"apellido\": \"Seguridad\",\n  \"rol\":\"ROLE_SERENAZGO\"\n}"
+            },
+            "url": { "raw": "{{auth_url}}/api/auth/register", "host": ["{{auth_url}}"], "path": ["api", "auth", "register"] }
+          }
+        },
+        {
+          "name": "3. Registrar Administrador",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"admin1\",\n  \"password\": \"123456\",\n  \"email\": \"admin@alertavecinal.pe\",\n  \"nombre\": \"Admin\",\n  \"apellido\": \"Root\",\n  \"rol\":\"ROLE_ADMIN\"\n}"
+            },
+            "url": { "raw": "{{auth_url}}/api/auth/register", "host": ["{{auth_url}}"], "path": ["api", "auth", "register"] }
+          }
+        },
+        {
+          "name": "4. Login Universal (Obtiene JWT Automático)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.response && jsonData.response.token) {",
+                  "    pm.collectionVariables.set('jwt_token', jsonData.response.token);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"admin1\",\n  \"password\": \"123456\"\n}"
+            },
+            "url": { "raw": "{{auth_url}}/api/auth/login", "host": ["{{auth_url}}"], "path": ["api", "auth", "login"] }
+          }
+        },
+        {
+          "name": "5. Ver Perfil Actual (Usa JWT)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{jwt_token}}" }],
+            "url": { "raw": "{{auth_url}}/api/auth/profile", "host": ["{{auth_url}}"], "path": ["api", "auth", "profile"] }
+          }
+        },
+        {
+          "name": "6. Validar Token (Inter-Servicios)",
+          "request": {
+            "method": "GET",
+            "url": { 
+              "raw": "{{auth_url}}/api/auth/validate?token={{jwt_token}}", 
+              "host": ["{{auth_url}}"], 
+              "path": ["api", "auth", "validate"],
+              "query": [{"key": "token", "value": "{{jwt_token}}"}]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "02. Incident Service (Core de Reportes)",
+      "item": [
+        {
+          "name": "1. Crear Reporte - Robo",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{jwt_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombresCiudadano\": \"Juan\",\n  \"apellidosCiudadano\": \"Perez\",\n  \"tipo\": \"Robo\",\n  \"descripcion\": \"Robo de celular en esquina de Av. Arequipa\",\n  \"ubicacionExacta\": \"Av. Arequipa cdra 12\",\n  \"prioridad\": \"ALTA\"\n}"
+            },
+            "url": { "raw": "{{incident_url}}/api/incidentes", "host": ["{{incident_url}}"], "path": ["api", "incidentes"] }
+          }
+        },
+        {
+          "name": "2. Crear Reporte - Vandalismo",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{jwt_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombresCiudadano\": \"Maria\",\n  \"apellidosCiudadano\": \"Garcia\",\n  \"tipo\": \"Vandalismo\",\n  \"descripcion\": \"Grupo rayando paredes cerca al parque\",\n  \"ubicacionExacta\": \"Parque Kennedy\",\n  \"prioridad\": \"MEDIA\"\n}"
+            },
+            "url": { "raw": "{{incident_url}}/api/incidentes", "host": ["{{incident_url}}"], "path": ["api", "incidentes"] }
+          }
+        },
+        {
+          "name": "3. Crear Reporte - Anónimo",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{jwt_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tipo\": \"Ruidos Molestos\",\n  \"descripcion\": \"Fiesta a todo volumen despues de las 2am\",\n  \"ubicacionExacta\": \"Calle Las Flores 234\",\n  \"prioridad\": \"BAJA\"\n}"
+            },
+            "url": { "raw": "{{incident_url}}/api/incidentes", "host": ["{{incident_url}}"], "path": ["api", "incidentes"] }
+          }
+        },
+        {
+          "name": "4. Listar Todos los Incidentes",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{jwt_token}}" }],
+            "url": { "raw": "{{incident_url}}/api/incidentes", "host": ["{{incident_url}}"], "path": ["api", "incidentes"] }
+          }
+        },
+        {
+          "name": "5. Buscar Incidente por ID",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{jwt_token}}" }],
+            "url": { "raw": "{{incident_url}}/api/incidentes/1", "host": ["{{incident_url}}"], "path": ["api", "incidentes", "1"] }
+          }
+        },
+        {
+          "name": "6. Filtrar por Estado (PENDIENTE)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{jwt_token}}" }],
+            "url": { "raw": "{{incident_url}}/api/incidentes/estado/PENDIENTE", "host": ["{{incident_url}}"], "path": ["api", "incidentes", "estado", "PENDIENTE"] }
+          }
+        },
+        {
+          "name": "7. Filtrar por Prioridad (ALTA)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{jwt_token}}" }],
+            "url": { "raw": "{{incident_url}}/api/incidentes/prioridad/ALTA", "host": ["{{incident_url}}"], "path": ["api", "incidentes", "prioridad", "ALTA"] }
+          }
+        },
+        {
+          "name": "8. Actualizar Estado (Base API)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{jwt_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"estado\": \"EN_PROCESO\",\n  \"comentario\": \"Patrulla derivando caso al serenazgo central\"\n}"
+            },
+            "url": { "raw": "{{incident_url}}/api/incidentes/1/atencion", "host": ["{{incident_url}}"], "path": ["api", "incidentes", "1", "atencion"] }
+          }
+        },
+        {
+          "name": "9. Eliminar Incidente",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{jwt_token}}" }],
+            "url": { "raw": "{{incident_url}}/api/incidentes/3", "host": ["{{incident_url}}"], "path": ["api", "incidentes", "3"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "03. Serenazgo Service (Operativa & Auditoría)",
+      "item": [
+        {
+          "name": "1. Ver Panel de Incidentes Activos",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{jwt_token}}" }],
+            "url": { "raw": "{{serenazgo_url}}/api/serenazgo/incidentes", "host": ["{{serenazgo_url}}"], "path": ["api", "serenazgo", "incidentes"] }
+          }
+        },
+        {
+          "name": "2. Ver Detalle Operativo de Incidente",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{jwt_token}}" }],
+            "url": { "raw": "{{serenazgo_url}}/api/serenazgo/incidentes/1", "host": ["{{serenazgo_url}}"], "path": ["api", "serenazgo", "incidentes", "1"] }
+          }
+        },
+        {
+          "name": "3. Agente Atiende: Cambio a EN_PROCESO",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{jwt_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nuevoEstado\": \"EN_PROCESO\",\n  \"comentario\": \"Me dirijo a la zona informada.\"\n}"
+            },
+            "url": {
+              "raw": "{{serenazgo_url}}/api/serenazgo/incidentes/1/estado?serenazgoId=2",
+              "host": ["{{serenazgo_url}}"],
+              "path": ["api", "serenazgo", "incidentes", "1", "estado"],
+              "query": [{ "key": "serenazgoId", "value": "2" }]
+            }
+          }
+        },
+        {
+          "name": "4. Agente Cierra: Cambio a ATENDIDO",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{jwt_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nuevoEstado\": \"ATENDIDO\",\n  \"comentario\": \"Sospechoso intervenido junto con la Policía.\"\n}"
+            },
+            "url": {
+              "raw": "{{serenazgo_url}}/api/serenazgo/incidentes/1/estado?serenazgoId=2",
+              "host": ["{{serenazgo_url}}"],
+              "path": ["api", "serenazgo", "incidentes", "1", "estado"],
+              "query": [{ "key": "serenazgoId", "value": "2" }]
+            }
+          }
+        },
+        {
+          "name": "5. Auditoria: Ver Historial de Estados",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{jwt_token}}" }],
+            "url": { "raw": "{{serenazgo_url}}/api/serenazgo/incidentes/1/historial", "host": ["{{serenazgo_url}}"], "path": ["api", "serenazgo", "incidentes", "1", "historial"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "04. Admin Service (Backoffice & Paramétricas)",
+      "item": [
+        {
+          "name": "1. Dashboard: Reporte Estadistico",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{jwt_token}}" }],
+            "url": { "raw": "{{admin_url}}/api/admin/reportes/estadisticas", "host": ["{{admin_url}}"], "path": ["api", "admin", "reportes", "estadisticas"] }
+          }
+        },
+        {
+          "name": "2. Ver Todos los Incidentes Globales",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{jwt_token}}" }],
+            "url": { "raw": "{{admin_url}}/api/admin/reportes/incidentes", "host": ["{{admin_url}}"], "path": ["api", "admin", "reportes", "incidentes"] }
+          }
+        },
+        {
+          "name": "3. Filtrar Incidentes Centralizados",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{jwt_token}}" }],
+            "url": { 
+              "raw": "{{admin_url}}/api/admin/reportes/incidentes/filtrar?estado=PENDIENTE", 
+              "host": ["{{admin_url}}"], 
+              "path": ["api", "admin", "reportes", "incidentes", "filtrar"],
+              "query": [{ "key": "estado", "value": "PENDIENTE" }]
+            }
+          }
+        },
+        {
+          "name": "4. Crear Parametrica - Tipo",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{jwt_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tipo\": \"TIPO_INCIDENTE\",\n  \"valor\": \"Robo\",\n  \"descripcion\": \"Sustraccion material\",\n  \"activo\": true\n}"
+            },
+            "url": { "raw": "{{admin_url}}/api/admin/parametricas", "host": ["{{admin_url}}"], "path": ["api", "admin", "parametricas"] }
+          }
+        },
+        {
+          "name": "5. Crear Parametrica - Prioridad",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{jwt_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tipo\": \"PRIORIDAD\",\n  \"valor\": \"ALTA\",\n  \"descripcion\": \"Accion Inmediata\",\n  \"activo\": true\n}"
+            },
+            "url": { "raw": "{{admin_url}}/api/admin/parametricas", "host": ["{{admin_url}}"], "path": ["api", "admin", "parametricas"] }
+          }
+        },
+        {
+          "name": "6. Listar Parametricas Global",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{jwt_token}}" }],
+            "url": { "raw": "{{admin_url}}/api/admin/parametricas", "host": ["{{admin_url}}"], "path": ["api", "admin", "parametricas"] }
+          }
+        },
+        {
+          "name": "7. Filtrar Parametricas por Tipo",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{jwt_token}}" }],
+            "url": { 
+              "raw": "{{admin_url}}/api/admin/parametricas?tipo=TIPO_INCIDENTE", 
+              "host": ["{{admin_url}}"], 
+              "path": ["api", "admin", "parametricas"],
+              "query": [{"key": "tipo", "value": "TIPO_INCIDENTE"}]
+             }
+          }
+        },
+        {
+          "name": "8. Actualizar Parametrica",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{jwt_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tipo\": \"TIPO_INCIDENTE\",\n  \"valor\": \"Robo Agravado\",\n  \"descripcion\": \"Con arma de fuego\",\n  \"activo\": true\n}"
+            },
+            "url": { "raw": "{{admin_url}}/api/admin/parametricas/1", "host": ["{{admin_url}}"], "path": ["api", "admin", "parametricas", "1"] }
+          }
+        },
+        {
+          "name": "9. Eliminar Parametrica",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{jwt_token}}" }],
+            "url": { "raw": "{{admin_url}}/api/admin/parametricas/1", "host": ["{{admin_url}}"], "path": ["api", "admin", "parametricas", "1"] }
+          }
+        }
+      ]
+    }
+  ]
+}
