@@ -271,5 +271,3 @@ Garantiza que el consumidor (Frontend o servicio externo) siempre reciba la mism
 La inyección por constructor con campos `final` es la práctica recomendada por el equipo de Spring Framework. Garantiza inmutabilidad, facilita las pruebas unitarias y permite que el compilador detecte dependencias faltantes en tiempo de compilación.
 
 ---
-
-**Autor:** Hector Palacios  
