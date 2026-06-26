@@ -140,9 +140,11 @@ Cuando el `admin-service` o el `serenazgo-service` necesitan consultar al `incid
 
 ### Base de Datos
 
-El usuario de MySQL debe ser `root` con contraseña `hectorpalacios`. Las bases de datos se crean automáticamente al arrancar cada servicio gracias a la propiedad `createDatabaseIfNotExist=true`.
+El usuario por defecto de MySQL debe ser `root` con contraseña `hectorpalacios`. 
 
-Si tu contraseña de MySQL es diferente, actualiza la propiedad `spring.datasource.password` en el archivo `application.properties` de cada servicio.
+**Para inicializar el proyecto, simplemente abre MySQL Workbench (o similar) y ejecuta el archivo `script_bd_alerta_vecinal.sql`** que se encuentra en la raíz del proyecto. Este script preparará los 4 esquemas limpios. Las tablas internas se crearán automáticamente al arrancar los servicios gracias a `ddl-auto=update`.
+
+> Si tu contraseña de MySQL es diferente, recuerda actualizar la propiedad `spring.datasource.password` en el archivo `application.properties` de los 4 servicios.
 
 ```
 auth-service       → alerta_auth_db
