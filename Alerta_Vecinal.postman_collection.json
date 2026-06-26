@@ -22,7 +22,7 @@
             "header": [{ "key": "Content-Type", "value": "application/json" }],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"username\": \"vecino1\",\n  \"password\": \"123456\",\n  \"email\": \"vecino@alertavecinal.pe\",\n  \"nombre\": \"Juan\",\n  \"apellido\": \"Perez\",\n  \"rol\":\"ROLE_VECINO\"\n}"
+              "raw": "{\n  \"username\": \"vecino1\",\n  \"password\": \"123456\",\n  \"email\": \"vecino@alertavecinal.pe\",\n  \"nombres\": \"Juan\",\n  \"apellidos\": \"Perez\",\n  \"rol\":\"ROLE_VECINO\"\n}"
             },
             "url": { "raw": "{{auth_url}}/api/auth/register", "host": ["{{auth_url}}"], "path": ["api", "auth", "register"] }
           }
@@ -34,7 +34,7 @@
             "header": [{ "key": "Content-Type", "value": "application/json" }],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"username\": \"agente1\",\n  \"password\": \"123456\",\n  \"email\": \"agente@alertavecinal.pe\",\n  \"nombre\": \"Carlos\",\n  \"apellido\": \"Seguridad\",\n  \"rol\":\"ROLE_SERENAZGO\"\n}"
+              "raw": "{\n  \"username\": \"agente1\",\n  \"password\": \"123456\",\n  \"email\": \"agente@alertavecinal.pe\",\n  \"nombres\": \"Carlos\",\n  \"apellidos\": \"Seguridad\",\n  \"rol\":\"ROLE_SERENAZGO\"\n}"
             },
             "url": { "raw": "{{auth_url}}/api/auth/register", "host": ["{{auth_url}}"], "path": ["api", "auth", "register"] }
           }
@@ -46,7 +46,7 @@
             "header": [{ "key": "Content-Type", "value": "application/json" }],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"username\": \"admin1\",\n  \"password\": \"123456\",\n  \"email\": \"admin@alertavecinal.pe\",\n  \"nombre\": \"Admin\",\n  \"apellido\": \"Root\",\n  \"rol\":\"ROLE_ADMIN\"\n}"
+              "raw": "{\n  \"username\": \"admin1\",\n  \"password\": \"123456\",\n  \"email\": \"admin@alertavecinal.pe\",\n  \"nombres\": \"Admin\",\n  \"apellidos\": \"Root\",\n  \"rol\":\"ROLE_ADMIN\"\n}"
             },
             "url": { "raw": "{{auth_url}}/api/auth/register", "host": ["{{auth_url}}"], "path": ["api", "auth", "register"] }
           }

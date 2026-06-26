@@ -1,11 +1,14 @@
 package com.alertavecinal.serenazgo.dto;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
-@Builder
 @Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class GenericResponseDto<T> {
     private T response;
-    private ErrorMessage error;
 }
